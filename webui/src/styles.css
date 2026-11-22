@@ -448,3 +448,103 @@ button {
   background: var(--cg-selection);
   color: var(--cg-accent);
 }
+
+/* Expand picker */
+
+.cg-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 25%);
+}
+
+.cg-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(420px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  padding: 12px;
+  border: 1px solid var(--cg-border);
+  border-radius: 6px;
+  background: var(--cg-panel);
+  color: var(--cg-foreground);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 30%);
+}
+
+.cg-modal-title {
+  font-weight: 600;
+}
+
+.cg-pick-all {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--cg-border);
+  color: var(--cg-secondary-foreground);
+}
+
+.cg-pick-list {
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.cg-pick-list label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 6px;
+  padding: 3px 2px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.cg-pick-list label:hover {
+  background: var(--cg-selection);
+}
+
+.cg-pick-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cg-pick-meta {
+  grid-column: 2;
+  overflow: hidden;
+  color: var(--cg-secondary-foreground);
+  font-size: 0.85em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cg-modal-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.cg-modal-actions button {
+  padding: 3px 12px;
+  border: 1px solid var(--cg-border);
+  border-radius: 4px;
+  background: var(--cg-background);
+  color: var(--cg-foreground);
+  cursor: pointer;
+}
+
+.cg-modal-actions button.is-primary {
+  border-color: var(--cg-accent);
+  background: var(--cg-accent);
+  color: #fff;
+}
+
+.cg-modal-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

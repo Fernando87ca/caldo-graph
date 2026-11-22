@@ -14,13 +14,14 @@ import {
 } from "@xyflow/react";
 import { isEmbedded, send, subscribe } from "./bridge";
 import { ClassNode, type ClassFlowNode } from "./ClassNode";
+import { ExpandPicker, type ExpandRequest } from "./ExpandPicker";
 import { FiltersPanel } from "./FiltersPanel";
 import { GraphActionsContext, GraphInfoContext, type GraphActions, type GraphInfo } from "./GraphActions";
 import { handlesFor, isClick, NOT_CANVAS, placeWithoutOverlap, type Box } from "./graphLogic";
 import { COLUMN_GAP, columnLayout, sideFor } from "./columnLayout";
 import { Legend } from "./Legend";
 import { envelope, type NodeKind, type PlacedNode, type Point, type RelationKind, type Side } from "./protocol";
-import { mergeRelations, pendingFor, relationKey, visibleRelations, withExpanded, type RelationIndex } from "./relations";
+import { mergeRelations, pendingFor, relationKey, relationKindsWith, visibleRelations, withExpanded, type RelationIndex } from "./relations";
 import { exportImage } from "./exportImage";
 import { applyTheme } from "./theme";
 import { UmlEdge, UmlMarkers, type UmlFlowEdge } from "./UmlEdge";
@@ -68,6 +69,7 @@ export function App() {
   // Read from message handlers without re-subscribing to the bridge (which would send "ready" again).
   const relationsRef = useRef(relations);
   relationsRef.current = relations;
+  const [expandRequest, setExpandRequest] = useState<ExpandRequest | null>(null);
   const [hiddenRelations, setHiddenRelations] = useState<Set<RelationKind>>(new Set());
   const [hiddenNodes, setHiddenNodes] = useState<Set<NodeKind>>(new Set());
   const [legendVisible, setLegendVisible] = useState(true);
@@ -261,7 +263,9 @@ export function App() {
         );
         scheduleSnapshot();
       },
-      expand: (id, side, targets) => send(envelope("expand", { id, side, targets })),
+      // Ask which neighbours to add first; the picker sends "expand" with the chosen ones.
+      expand: (id, side, targets) =>
+        setExpandRequest({ id, side, targets, kinds: relationKindsWith(id, targets, relationsRef.current) }),
       findIncoming: (id) => send(envelope("findIncoming", { id })),
     }),
     [setNodes, scheduleSnapshot],
@@ -389,6 +393,16 @@ export function App() {
     <GraphActionsContext.Provider value={actions}>
       <GraphInfoContext.Provider value={info}>
         {status && <div className="cg-status">{status}</div>}
+        {expandRequest && (
+          <ExpandPicker
+            request={expandRequest}
+            onAccept={(targets) => {
+              send(envelope("expand", { id: expandRequest.id, side: expandRequest.side, targets }));
+              setExpandRequest(null);
+            }}
+            onCancel={() => setExpandRequest(null)}
+          />
+        )}
         {nodes.length === 0 && !status && (
           <div className="cg-empty">Drag classes or composables here, right-click to search, or use “Add to Caldo Graph” (⌃⌥⇧G).</div>
         )}
