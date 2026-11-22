@@ -1,0 +1,450 @@
+:root {
+  /* Defaults for standalone development; the plugin overrides them with the IDE theme. */
+  --cg-background: #ffffff;
+  --cg-foreground: #1f1f1f;
+  --cg-secondary-foreground: #6c707e;
+  --cg-border: #d3d5db;
+  --cg-panel: #f7f8fa;
+  --cg-accent: #3574f0;
+  --cg-selection: #d4e2ff;
+  --cg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --cg-font-size: 13px;
+
+  --kind-composablePage: #2e9d4f;
+  --kind-composableRouter: #138a8a;
+  --kind-composable: #7cb342;
+  --kind-navigator: #0891b2;
+  --kind-viewModel: #7c3aed;
+  --kind-useCase: #2563eb;
+  --kind-repositoryInterface: #ea7a0c;
+  --kind-repositoryImpl: #ea7a0c;
+  --kind-dataSource: #dc2626;
+  --kind-model: #6b7280;
+  --kind-other: #94a3b8;
+}
+
+:root[data-theme="dark"] {
+  --kind-composablePage: #5fbf7a;
+  --kind-composableRouter: #3fb8b0;
+  --kind-composable: #a5d46a;
+  --kind-navigator: #38bdf8;
+  --kind-viewModel: #a78bfa;
+  --kind-useCase: #60a5fa;
+  --kind-repositoryInterface: #fb923c;
+  --kind-repositoryImpl: #fb923c;
+  --kind-dataSource: #f87171;
+  --kind-model: #9ca3af;
+  --kind-other: #64748b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --cg-background: #1e1f22;
+    --cg-foreground: #dfe1e5;
+    --cg-secondary-foreground: #868a91;
+    --cg-border: #43454a;
+    --cg-panel: #2b2d30;
+    --cg-selection: #2e436e;
+  }
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  background: var(--cg-background);
+  color: var(--cg-foreground);
+  font-family: var(--cg-font);
+  font-size: var(--cg-font-size);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+.cg-status,
+.cg-empty {
+  position: absolute;
+  z-index: 5;
+  color: var(--cg-secondary-foreground);
+}
+
+.cg-status {
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--cg-border);
+  border-radius: 4px;
+  background: var(--cg-panel);
+}
+
+.cg-empty {
+  top: 40%;
+  width: 100%;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Node box */
+
+.cg-class {
+  --kind: var(--kind-other);
+  min-width: 200px;
+  max-width: 420px;
+  border: 1.5px solid var(--kind);
+  border-radius: 6px;
+  background: var(--cg-panel);
+  color: var(--cg-foreground);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 15%);
+  overflow: hidden;
+}
+
+.cg-class.is-interface {
+  border-style: dashed;
+}
+
+.cg-class.is-selected {
+  box-shadow: 0 0 0 2px var(--cg-accent);
+}
+
+.cg-class.is-not-found {
+  opacity: 0.6;
+  border-color: var(--cg-secondary-foreground);
+}
+
+.cg-class-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  background: color-mix(in srgb, var(--kind) 18%, var(--cg-panel));
+  border-bottom: 1px solid color-mix(in srgb, var(--kind) 40%, transparent);
+  cursor: pointer;
+}
+
+.cg-kind-icon {
+  flex: none;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 3px;
+  margin-top: 2px;
+  border-radius: 4px;
+  background: var(--kind);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.cg-class-title {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.cg-stereotype,
+.cg-package {
+  color: var(--cg-secondary-foreground);
+  font-size: 0.85em;
+}
+
+.cg-name {
+  font-weight: 700;
+}
+
+.cg-class.is-interface .cg-name {
+  font-style: italic;
+}
+
+.cg-class.is-not-found .cg-name {
+  text-decoration: line-through;
+}
+
+.cg-not-found {
+  color: var(--kind-dataSource);
+  font-size: 0.85em;
+}
+
+.cg-icon-button {
+  flex: none;
+  border: none;
+  background: none;
+  padding: 0 2px;
+  color: var(--cg-secondary-foreground);
+  cursor: pointer;
+}
+
+.cg-icon-button:hover {
+  color: var(--cg-foreground);
+}
+
+.cg-section + .cg-section {
+  border-top: 1px solid var(--cg-border);
+}
+
+.cg-section-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 3px 8px;
+  border: none;
+  background: none;
+  color: var(--cg-secondary-foreground);
+  font-size: 0.85em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cg-chevron {
+  width: 10px;
+}
+
+.cg-count {
+  margin-left: auto;
+}
+
+.cg-members {
+  margin: 0;
+  padding: 0 0 4px;
+  list-style: none;
+  font-family: "JetBrains Mono", Menlo, monospace;
+  font-size: 0.88em;
+}
+
+.cg-members li {
+  padding: 1px 8px 1px 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.cg-members li:hover {
+  background: var(--cg-selection);
+}
+
+.cg-member-signature {
+  color: var(--cg-secondary-foreground);
+}
+
+.cg-handle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Kind colors */
+
+.kind-composablePage { --kind: var(--kind-composablePage); }
+.kind-composableRouter { --kind: var(--kind-composableRouter); }
+.kind-composable { --kind: var(--kind-composable); }
+.kind-navigator { --kind: var(--kind-navigator); }
+.kind-viewModel { --kind: var(--kind-viewModel); }
+.kind-useCase { --kind: var(--kind-useCase); }
+.kind-repositoryInterface { --kind: var(--kind-repositoryInterface); }
+.kind-repositoryImpl { --kind: var(--kind-repositoryImpl); }
+.kind-dataSource { --kind: var(--kind-dataSource); }
+.kind-model { --kind: var(--kind-model); }
+.kind-other { --kind: var(--kind-other); }
+
+/* Legend */
+
+.cg-legend {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  padding: 4px 8px;
+  border: 1px solid var(--cg-border);
+  border-radius: 4px;
+  background: var(--cg-panel);
+  font-size: 0.9em;
+}
+
+.cg-legend-toggle {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--cg-accent);
+  cursor: pointer;
+}
+
+.cg-legend ul {
+  margin: 6px 0 2px;
+  padding: 0;
+  list-style: none;
+}
+
+.cg-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 0;
+}
+
+.cg-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--kind);
+}
+
+.cg-swatch.kind-repositoryInterface {
+  background: transparent;
+  border: 1.5px dashed var(--kind);
+  box-sizing: border-box;
+}
+
+.react-flow {
+  --xy-background-color: var(--cg-background);
+  --xy-node-color: var(--cg-foreground);
+  --xy-node-border-radius: 6px;
+  --xy-controls-button-background-color: var(--cg-panel);
+  --xy-controls-button-background-color-hover: var(--cg-selection);
+  --xy-controls-button-color: var(--cg-foreground);
+  --xy-controls-button-border-color: var(--cg-border);
+}
+
+.react-flow__node-class {
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+/* Expand buttons and node shell */
+
+.cg-node-shell {
+  position: relative;
+}
+
+.cg-expand {
+  position: absolute;
+  top: 6px;
+  z-index: 1;
+  padding: 1px 6px;
+  border: 1px solid var(--cg-border);
+  border-radius: 10px;
+  background: var(--cg-background);
+  color: var(--cg-accent);
+  font-size: 0.8em;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cg-expand:hover {
+  border-color: var(--cg-accent);
+}
+
+.cg-expand-left {
+  right: 100%;
+  transform: translateX(-6px);
+}
+
+.cg-expand-right {
+  left: 100%;
+  transform: translateX(6px);
+}
+
+/* Edges */
+
+:root {
+  --cg-edge: #8c919c;
+}
+
+:root[data-theme="dark"] {
+  --cg-edge: #7a7f88;
+}
+
+.cg-markers {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+
+.cg-edge-label,
+.cg-edge-multiplicity {
+  position: absolute;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--cg-background);
+  color: var(--cg-secondary-foreground);
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Toolbar and filters */
+
+.cg-toolbar {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 6;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.cg-toolbar > button {
+  padding: 2px 8px;
+  border: 1px solid var(--cg-border);
+  border-radius: 4px;
+  background: var(--cg-panel);
+  cursor: pointer;
+}
+
+.cg-toolbar > button.is-active {
+  border-color: var(--cg-accent);
+  color: var(--cg-accent);
+}
+
+.cg-filters {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  display: flex;
+  gap: 12px;
+  padding: 8px;
+  border: 1px solid var(--cg-border);
+  border-radius: 4px;
+  background: var(--cg-panel);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+}
+
+.cg-filters fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.cg-filters legend {
+  margin-bottom: 4px;
+  color: var(--cg-secondary-foreground);
+  font-size: 0.85em;
+}
+
+.cg-filters label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cg-status {
+  top: 40px;
+}
+
+.react-flow__controls-button.is-active {
+  background: var(--cg-selection);
+  color: var(--cg-accent);
+}
