@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Relation } from "./protocol";
-import { mergeRelations, pendingFor, visibleRelations, withExpanded, type RelationIndex } from "./relations";
+import { mergeRelations, pendingFor, relationKindsWith, visibleRelations, withExpanded, type RelationIndex } from "./relations";
 
 const rel = (source: string, target: string, kind: Relation["kind"] = "injection"): Relation => ({
   source,
@@ -45,5 +45,17 @@ describe("relations", () => {
       ["other", null],
     ]);
     expect([...withExpanded("vm", parents)]).toEqual(["vm", "useCase", "repo"]);
+  });
+});
+
+describe("relationKindsWith", () => {
+  it("collects kinds in both directions per target", () => {
+    const index = mergeRelations(new Map(), [
+      { id: "a", outgoing: [rel("a", "b"), rel("a", "b", "calls")], incoming: [rel("c", "a", "implementation")] },
+    ]);
+    const kinds = relationKindsWith("a", ["b", "c", "d"], index);
+    expect(kinds.get("b")).toEqual(["injection", "calls"]);
+    expect(kinds.get("c")).toEqual(["implementation"]);
+    expect(kinds.get("d")).toEqual([]);
   });
 });

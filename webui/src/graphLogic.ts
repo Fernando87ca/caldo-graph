@@ -70,3 +70,10 @@ export function handlesFor(source: Box, target: Box, others: Box[] = []): { sour
     ? { sourceHandle: "s-right", targetHandle: "t-left" }
     : { sourceHandle: "s-left", targetHandle: "t-right" };
 }
+
+/** Simple name and package of a node id (`class:a.b.Foo`, `fun:a.b.Bar(Int)@/path`), for nodes not loaded yet. */
+export function nameOfId(id: string): { name: string; packageName: string } {
+  const fqName = id.startsWith("fun:") ? id.slice(4).split("(")[0] : id.replace(/^class:/, "");
+  const dot = fqName.lastIndexOf(".");
+  return dot < 0 ? { name: fqName, packageName: "" } : { name: fqName.slice(dot + 1), packageName: fqName.slice(0, dot) };
+}

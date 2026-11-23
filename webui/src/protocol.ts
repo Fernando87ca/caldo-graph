@@ -113,7 +113,8 @@ export type OutboundMessage =
   | Envelope<"expand", { id: string; side: Side; targets: string[] }>
   | Envelope<"findIncoming", { id: string }>
   | Envelope<"exportImage", { format: "png" | "svg"; dataUrl: string }>
-  | Envelope<"openSearch", Point>;
+  | Envelope<"openSearch", Point>
+  | Envelope<"textFocus", { active: boolean }>;
 
 type PayloadOf<T extends OutboundMessage["type"]> = Extract<OutboundMessage, { type: T }>["payload"];
 

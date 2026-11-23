@@ -59,3 +59,15 @@ export function withExpanded(id: string, parents: Map<string, string | null>): S
   }
   return result;
 }
+
+/** Relation kinds linking [id] with each of [targets] (either direction). */
+export function relationKindsWith(id: string, targets: string[], index: RelationIndex): Map<string, RelationKind[]> {
+  const wanted = new Set(targets);
+  const result = new Map<string, Set<RelationKind>>(targets.map((t) => [t, new Set()]));
+  const relations = index.get(id);
+  for (const r of [...(relations?.outgoing ?? []), ...(relations?.incoming ?? [])]) {
+    const other = r.source === id ? r.target : r.source;
+    if (wanted.has(other)) result.get(other)!.add(r.kind);
+  }
+  return new Map([...result].map(([k, v]) => [k, [...v]]));
+}

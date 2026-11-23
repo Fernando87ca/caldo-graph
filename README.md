@@ -9,8 +9,13 @@ repositories and dependency injection.
 
 ## Features
 
-- **Interactive canvas** in a tool window (left side by default), rendered with an embedded browser (JCEF) and
-  React Flow. Pan, zoom, multi-select, collapse member sections and delete boxes.
+- **Several diagrams, as editor tabs.** The Caldo Graph tool window lists the project's diagrams: create, open,
+  rename (F2) and delete them. Each diagram opens as an editor tab, so you can close it, drag it to a side of the
+  editor, or use *Split Right* / *Split Down* (also nested), just like code tabs. A diagram is shown in one tab
+  at a time, so splitting a diagram tab moves it to the new split. "Add to Caldo Graph" adds to the diagram you
+  selected last.
+- **Interactive canvas** rendered with an embedded browser (JCEF) and React Flow. Pan, zoom, multi-select,
+  collapse member sections and delete boxes.
 - **Many ways to add declarations**:
   - drag & drop from the Project view, the Structure view or the editor
   - the **Add to Caldo Graph** action (`Ctrl+Alt+Shift+G`)
@@ -36,8 +41,8 @@ repositories and dependency injection.
 - **Filters** by relation kind and by layer, a toggleable legend, and **PNG/SVG export**.
 - **Configurable classification rules** (Settings → Tools → Caldo Graph): map supertypes, name suffixes,
   annotations, modifiers or file patterns to node kinds. Rules are stored per project in `.idea/classGraph.xml`.
-- **Per-project persistence**: nodes, positions, collapsed sections and filters are restored when you reopen the
-  project.
+- **Per-project persistence**: the diagrams (nodes, positions, collapsed sections and filters) and the open tabs and
+  splits are restored when you reopen the project.
 - Follows the IDE's light/dark theme and supports both the K1 and K2 Kotlin plugin modes.
 
 ## Requirements

@@ -13,6 +13,7 @@ class ProtocolTest {
     @Test
     fun `decodes inbound messages`() {
         assertEquals(Inbound.Ping(42), decodeInbound("""{"v":1,"type":"ping","payload":{"nonce":42}}"""))
+        assertEquals(Inbound.TextFocus(true), decodeInbound("""{"v":1,"type":"textFocus","payload":{"active":true}}"""))
         assertEquals(Inbound.Ready, decodeInbound("""{"v":1,"type":"ready","payload":{}}"""))
         assertEquals(Inbound.Navigate("class:a.B", "load"), decodeInbound("""{"v":1,"type":"navigate","payload":{"id":"class:a.B","member":"load"}}"""))
         assertEquals(

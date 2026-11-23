@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { abbreviatePackage, handlesFor, isClick, placeWithoutOverlap } from "./graphLogic";
+import { abbreviatePackage, handlesFor, isClick, nameOfId, placeWithoutOverlap } from "./graphLogic";
 
 describe("abbreviatePackage", () => {
   it("shortens all but the last segments", () => {
@@ -48,5 +48,13 @@ describe("handlesFor", () => {
   it("connects boxes of different columns through the facing sides", () => {
     expect(handlesFor(box(0, 0), box(400, 50))).toEqual({ sourceHandle: "s-right", targetHandle: "t-left" });
     expect(handlesFor(box(400, 0), box(0, 0))).toEqual({ sourceHandle: "s-left", targetHandle: "t-right" });
+  });
+});
+
+describe("nameOfId", () => {
+  it("splits class and function ids", () => {
+    expect(nameOfId("class:a.b.Foo")).toEqual({ name: "Foo", packageName: "a.b" });
+    expect(nameOfId("fun:a.b.Bar(Int,String)@/x/y.kt")).toEqual({ name: "Bar", packageName: "a.b" });
+    expect(nameOfId("class:Foo")).toEqual({ name: "Foo", packageName: "" });
   });
 });

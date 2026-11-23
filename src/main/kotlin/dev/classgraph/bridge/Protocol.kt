@@ -77,6 +77,10 @@ sealed interface Inbound {
     /** Search the incoming relations of [id] again (e.g. after a cancelled search). */
     @Serializable
     data class FindIncoming(val id: String) : Inbound
+
+    /** A text field in the web app gained ([active]) or lost focus: Delete/Backspace must then reach it, not delete boxes. */
+    @Serializable
+    data class TextFocus(val active: Boolean) : Inbound
 }
 
 /** Messages to the web app. */
@@ -151,6 +155,7 @@ fun decodeInbound(json: String): Inbound {
         "findIncoming" -> ProtocolJson.decodeFromJsonElement<Inbound.FindIncoming>(payload)
         "exportImage" -> ProtocolJson.decodeFromJsonElement<Inbound.ExportImage>(payload)
         "openSearch" -> ProtocolJson.decodeFromJsonElement<Inbound.OpenSearch>(payload)
+        "textFocus" -> ProtocolJson.decodeFromJsonElement<Inbound.TextFocus>(payload)
         else -> throw ProtocolException("Unknown message type '${envelope.type}'")
     }
 }

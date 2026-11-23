@@ -5,6 +5,7 @@ import com.intellij.ide.dnd.DnDManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -32,11 +33,14 @@ import javax.swing.JComponent
 import javax.swing.KeyStroke
 import javax.swing.SwingConstants
 
-class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true, true), Disposable {
+/** The canvas of one diagram tab: the web app in a JCEF browser, its toolbar, and the [controller] behind it. */
+class ClassGraphPanel(private val project: Project, private val diagramId: String) : SimpleToolWindowPanel(true, true), Disposable {
 
     private var bridge: GraphBridge? = null
-    private var browserComponent: JComponent? = null
-    private var controller: GraphController? = null
+    var browserComponent: JComponent? = null
+        private set
+    var controller: GraphController? = null
+        private set
 
     /** Messages produced before the web app reported `ready`; only touched on the EDT. */
     private val pending = mutableListOf<Outbound>()
@@ -61,9 +65,7 @@ class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true
         browser.jbCefClient.addRequestHandler(WebUiResourceHandler, browser.cefBrowser)
         bridge = GraphBridge(browser, this) { message -> UIUtil.invokeLaterIfNeeded { handle(message) } }
 
-        val controller = GraphController(project, browser.component, this, ::send)
-        this.controller = controller
-        ClassGraphService.getInstance(project).controller = controller
+        controller = GraphController(project, diagramId, browser.component, this, ::send)
 
         registerDropTarget(GraphDropTarget(browser.component, ::onDrop), browser.component)
 
@@ -76,9 +78,22 @@ class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true
         browser.loadURL(WebUiResourceHandler.INDEX_URL)
     }
 
-    /** Delete/Backspace on the canvas remove the selected boxes (or the hovered one); handled here so the IDE does not keep the key. */
+    /** True while a text field in the web app has focus; the delete shortcut then lets the key through to it. */
+    @Volatile
+    private var textFieldFocused = false
+
+    /**
+     * Delete/Backspace on the canvas remove the selected boxes (or the hovered one); handled here so the IDE does not keep the key.
+     * Disabled while a web text field has focus, so the IDE passes the key on to the browser and the field can delete text.
+     */
     private fun registerDeleteShortcut() {
         val delete = object : DumbAwareAction() {
+            override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+            override fun update(e: AnActionEvent) {
+                e.presentation.isEnabled = !textFieldFocused
+            }
+
             override fun actionPerformed(e: AnActionEvent) {
                 controller?.command("deleteSelection")
             }
@@ -98,6 +113,11 @@ class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true
 
     private fun createToolbar(browser: JBCefBrowser): JComponent {
         val group = DefaultActionGroup(
+            object : DumbAwareAction("New Diagram", "Open a new, empty diagram in another tab", AllIcons.FileTypes.Diagram) {
+                override fun actionPerformed(e: AnActionEvent) {
+                    ClassGraphService.getInstance(project).create()
+                }
+            },
             object : DumbAwareAction("Add Class or Composable…", "Search the project by name and add the declaration", AllIcons.General.Add) {
                 override fun actionPerformed(e: AnActionEvent) = openSearch(null)
             },
@@ -167,6 +187,7 @@ class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true
             is Inbound.FindIncoming -> controller?.findIncoming(message.id)
             is Inbound.ExportImage -> ImageExport.save(project, message.format, message.dataUrl)
             is Inbound.OpenSearch -> openSearch(Point(message.x, message.y))
+            is Inbound.TextFocus -> textFieldFocused = message.active
         }
     }
 
@@ -186,10 +207,7 @@ class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true
         }
     }
 
-    override fun dispose() {
-        val service = ClassGraphService.getInstance(project)
-        if (service.controller === controller) service.controller = null
-    }
+    override fun dispose() = Unit
 
     private companion object {
         val LOG = logger<ClassGraphPanel>()
