@@ -8,7 +8,7 @@ import com.intellij.ui.content.ContentFactory
 
 class ClassGraphToolWindowFactory : ToolWindowFactory, DumbAware {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val panel = ClassGraphPanel(project)
+        val panel = DiagramListPanel(project)
         val content = ContentFactory.getInstance().createContent(panel, null, false)
         content.setDisposer(panel)
         toolWindow.contentManager.addContent(content)

@@ -28,6 +28,7 @@ import dev.classgraph.model.GraphNode
 import dev.classgraph.model.NodeId
 import dev.classgraph.model.NodeKind
 import dev.classgraph.model.Relation
+import dev.classgraph.state.DiagramState
 import dev.classgraph.state.GraphStateService
 import dev.classgraph.state.NodeState
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -45,12 +46,13 @@ import java.util.concurrent.Callable
 import javax.swing.JComponent
 
 /**
- * Owns the graph contents of one tool window: turns drops/actions into nodes, computes their relations,
+ * Owns the contents of one open diagram (identified by [diagramId]): turns drops/actions into nodes, computes their relations,
  * restores and persists the graph, and navigates to code.
  * Public methods run on the EDT; PSI work happens in non-blocking read actions or a background task.
  */
 class GraphController(
     private val project: Project,
+    val diagramId: String,
     private val component: JComponent,
     private val parent: Disposable,
     private val send: (Outbound) -> Unit,
@@ -85,7 +87,7 @@ class GraphController(
     private class Analyzed(val node: GraphNode, val outgoing: List<Relation>)
 
     fun restore() {
-        val state = stateService.state
+        val state = stateService.diagram(diagramId) ?: DiagramState()
         val saved = state.nodes.toList()
         readAction({
             saved.mapNotNull { s ->
@@ -145,7 +147,7 @@ class GraphController(
         incoming.clear()
         incomingQueue.clear()
         saveNodes(emptyList())
-        val state = stateService.state
+        val state = stateService.diagram(diagramId) ?: DiagramState()
         send(Outbound.Graph(emptyList(), state.legendVisible, Filters(state.hiddenRelationKinds.toList(), state.hiddenNodeKinds.toList())))
     }
 
@@ -252,7 +254,7 @@ class GraphController(
         nodes.keys.retainAll(ids)
         incomingQueue.retainAll(ids)
         incoming.keys.retainAll(ids)
-        saveNodes(message.nodes.mapNotNull { layout ->
+        val saved = message.nodes.mapNotNull { layout ->
             val node = nodes[layout.id] ?: return@mapNotNull null
             NodeState().apply {
                 id = layout.id
@@ -264,12 +266,14 @@ class GraphController(
                 collapsed = layout.collapsed.toMutableList()
                 parent = layout.parent
             }
-        })
-        stateService.state.apply {
+        }
+        stateService.update(diagramId) {
+            nodes = saved.toMutableList()
             legendVisible = message.legendVisible
             hiddenRelationKinds = message.filters.hiddenRelationKinds.toMutableList()
             hiddenNodeKinds = message.filters.hiddenNodeKinds.toMutableList()
         }
+        ClassGraphService.getInstance(project).fireChanged()
     }
 
     fun navigate(message: Inbound.Navigate) {
@@ -356,7 +360,7 @@ class GraphController(
     }
 
     private fun saveNodes(saved: List<NodeState>) {
-        stateService.state.nodes = saved.toMutableList()
+        stateService.update(diagramId) { nodes = saved.toMutableList() }
     }
 
     private fun <T> readAction(compute: () -> T, onEdt: (T) -> Unit) {

@@ -4,7 +4,8 @@
     <vendor>Caldo Graph</vendor>
     <description><![CDATA[
         Interactive UML-style graph of the classes and composables of a Kotlin / Android project.
-        Drag declarations into the Caldo Graph tool window and expand their relations.
+        Create diagrams from the Caldo Graph tool window; each opens as an editor tab that can be split and moved.
+        Drag declarations into a diagram and expand their relations.
     ]]></description>
 
     <dependencies>
@@ -25,6 +26,9 @@
                     icon="/icons/classGraph.svg"
                     factoryClass="dev.classgraph.toolwindow.ClassGraphToolWindowFactory"/>
         <notificationGroup id="Caldo Graph" displayType="BALLOON"/>
+        <virtualFileSystem key="caldograph" implementationClass="dev.classgraph.editor.DiagramFileSystem"/>
+        <fileEditorProvider implementation="dev.classgraph.editor.DiagramEditorProvider"/>
+        <editorTabTitleProvider implementation="dev.classgraph.editor.DiagramTabTitleProvider"/>
         <projectConfigurable parentId="tools"
                              instance="dev.classgraph.settings.ClassGraphConfigurable"
                              id="dev.classgraph.settings"

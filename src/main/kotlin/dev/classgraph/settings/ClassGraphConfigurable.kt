@@ -60,7 +60,7 @@ class ClassGraphConfigurable(private val project: Project) : Configurable {
 
     override fun apply() {
         ClassGraphSettings.getInstance(project).rules = currentRules()
-        ClassGraphService.getInstance(project).controller?.reanalyzeAll()
+        ClassGraphService.getInstance(project).reanalyzeAll()
     }
 
     override fun reset() = setRules(ClassGraphSettings.getInstance(project).rules)

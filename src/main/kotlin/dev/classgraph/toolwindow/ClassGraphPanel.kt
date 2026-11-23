@@ -33,11 +33,14 @@ import javax.swing.JComponent
 import javax.swing.KeyStroke
 import javax.swing.SwingConstants
 
-class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true, true), Disposable {
+/** The canvas of one diagram tab: the web app in a JCEF browser, its toolbar, and the [controller] behind it. */
+class ClassGraphPanel(private val project: Project, private val diagramId: String) : SimpleToolWindowPanel(true, true), Disposable {
 
     private var bridge: GraphBridge? = null
-    private var browserComponent: JComponent? = null
-    private var controller: GraphController? = null
+    var browserComponent: JComponent? = null
+        private set
+    var controller: GraphController? = null
+        private set
 
     /** Messages produced before the web app reported `ready`; only touched on the EDT. */
     private val pending = mutableListOf<Outbound>()
@@ -62,9 +65,7 @@ class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true
         browser.jbCefClient.addRequestHandler(WebUiResourceHandler, browser.cefBrowser)
         bridge = GraphBridge(browser, this) { message -> UIUtil.invokeLaterIfNeeded { handle(message) } }
 
-        val controller = GraphController(project, browser.component, this, ::send)
-        this.controller = controller
-        ClassGraphService.getInstance(project).controller = controller
+        controller = GraphController(project, diagramId, browser.component, this, ::send)
 
         registerDropTarget(GraphDropTarget(browser.component, ::onDrop), browser.component)
 
@@ -112,6 +113,11 @@ class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true
 
     private fun createToolbar(browser: JBCefBrowser): JComponent {
         val group = DefaultActionGroup(
+            object : DumbAwareAction("New Diagram", "Open a new, empty diagram in another tab", AllIcons.FileTypes.Diagram) {
+                override fun actionPerformed(e: AnActionEvent) {
+                    ClassGraphService.getInstance(project).create()
+                }
+            },
             object : DumbAwareAction("Add Class or Composable…", "Search the project by name and add the declaration", AllIcons.General.Add) {
                 override fun actionPerformed(e: AnActionEvent) = openSearch(null)
             },
@@ -201,10 +207,7 @@ class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true
         }
     }
 
-    override fun dispose() {
-        val service = ClassGraphService.getInstance(project)
-        if (service.controller === controller) service.controller = null
-    }
+    override fun dispose() = Unit
 
     private companion object {
         val LOG = logger<ClassGraphPanel>()

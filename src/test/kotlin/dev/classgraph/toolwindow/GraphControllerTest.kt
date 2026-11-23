@@ -16,8 +16,10 @@ class GraphControllerTest : KotlinFixtureTestCase() {
 
     override fun setUp() {
         super.setUp()
-        GraphStateService.getInstance(project).loadState(dev.classgraph.state.GraphState())
-        controller = GraphController(project, JPanel(), testRootDisposable) { sent += it }
+        val stateService = GraphStateService.getInstance(project)
+        stateService.loadState(dev.classgraph.state.GraphState())
+        val diagram = stateService.create()
+        controller = GraphController(project, diagram.id!!, JPanel(), testRootDisposable) { sent += it }
         controller.restore()
         waitFor("restore") { sent.any { it is Outbound.Graph } }
     }
