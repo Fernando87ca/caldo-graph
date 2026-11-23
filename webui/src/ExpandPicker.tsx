@@ -19,11 +19,23 @@ interface Props {
 /** Lets the user choose which of the pending neighbours of a node to add before expanding it. */
 export function ExpandPicker({ request, onAccept, onCancel }: Props) {
   const [checked, setChecked] = useState<Set<string>>(() => new Set(request.targets));
-  const all = checked.size === request.targets.length;
+  const [query, setQuery] = useState("");
   const accept = () => checked.size > 0 && onAccept(request.targets.filter((t) => checked.has(t)));
   const items = request.targets
-    .map((id) => ({ id, ...nameOfId(id) }))
+    .map((id) => {
+      const { name, packageName } = nameOfId(id);
+      const meta = [...(request.kinds.get(id) ?? []).map((k) => RELATION_LABELS[k]), abbreviatePackage(packageName)];
+      return { id, name, packageName, meta: meta.filter(Boolean).join(" · ") };
+    })
     .sort((a, b) => a.name.localeCompare(b.name));
+  // Every word must appear in the name, package or relation kinds; "Select all" applies to the visible rows only.
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const visible = items.filter((item) => {
+    const text = `${item.name} ${item.packageName} ${item.meta}`.toLowerCase();
+    return words.every((w) => text.includes(w));
+  });
+  const visibleChecked = visible.filter((item) => checked.has(item.id)).length;
+  const all = visible.length > 0 && visibleChecked === visible.length;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -47,19 +59,35 @@ export function ExpandPicker({ request, onAccept, onCancel }: Props) {
         <header className="cg-modal-title">
           {request.side === "left" ? "Add incoming" : "Add outgoing"} · {nameOfId(request.id).name}
         </header>
+        <input
+          className="cg-pick-filter"
+          type="search"
+          placeholder="Filter…"
+          value={query}
+          autoFocus
+          onChange={(e) => setQuery(e.target.value)}
+        />
         <label className="cg-pick-all">
           <input
             type="checkbox"
             checked={all}
             ref={(el) => {
-              if (el) el.indeterminate = !all && checked.size > 0;
+              if (el) el.indeterminate = !all && visibleChecked > 0;
             }}
-            onChange={() => setChecked(all ? new Set() : new Set(request.targets))}
+            disabled={visible.length === 0}
+            onChange={() =>
+              setChecked((s) => {
+                const next = new Set(s);
+                visible.forEach((item) => (all ? next.delete(item.id) : next.add(item.id)));
+                return next;
+              })
+            }
           />
-          Select all ({checked.size}/{request.targets.length})
+          {words.length > 0 ? `Select all shown (${visible.length})` : "Select all"} · {checked.size}/{request.targets.length} selected
         </label>
         <ul className="cg-pick-list">
-          {items.map((item) => (
+          {visible.length === 0 && <li className="cg-pick-empty">No matches</li>}
+          {visible.map((item) => (
             <li key={item.id}>
               <label title={item.id}>
                 <input
@@ -74,11 +102,7 @@ export function ExpandPicker({ request, onAccept, onCancel }: Props) {
                   }
                 />
                 <span className="cg-pick-name">{item.name}</span>
-                <span className="cg-pick-meta">
-                  {[...(request.kinds.get(item.id) ?? []).map((k) => RELATION_LABELS[k]), abbreviatePackage(item.packageName)]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </span>
+                <span className="cg-pick-meta">{item.meta}</span>
               </label>
             </li>
           ))}
@@ -87,7 +111,7 @@ export function ExpandPicker({ request, onAccept, onCancel }: Props) {
           <button type="button" onClick={onCancel}>
             Cancel
           </button>
-          <button type="submit" className="is-primary" disabled={checked.size === 0} autoFocus>
+          <button type="submit" className="is-primary" disabled={checked.size === 0}>
             Accept
           </button>
         </footer>

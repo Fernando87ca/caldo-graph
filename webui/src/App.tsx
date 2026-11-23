@@ -377,10 +377,24 @@ export function App() {
         }
       }
     });
+    // The IDE binds Delete/Backspace to "delete boxes"; tell it when a text field needs those keys instead.
+    const isTextField = (el: EventTarget | null) =>
+      el instanceof HTMLElement && (el.isContentEditable || el instanceof HTMLTextAreaElement ||
+        (el instanceof HTMLInputElement && !["checkbox", "radio", "button", "submit"].includes(el.type)));
+    const onFocusIn = (e: FocusEvent) => send(envelope("textFocus", { active: isTextField(e.target) }));
+    const onFocusOut = (e: FocusEvent) => {
+      if (isTextField(e.target) && !isTextField(e.relatedTarget)) send(envelope("textFocus", { active: false }));
+    };
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
     send(envelope("ready", {}));
     send(envelope("ping", { nonce: Date.now() }));
     if (!isEmbedded()) setStatus("Standalone mode (no IDE bridge)");
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
   }, [setNodes, setCenter, fitView, getNodes, scheduleSnapshot, placeNew]);
 
   const toggle = <T,>(set: Set<T>, value: T) => {

@@ -5,6 +5,7 @@ import com.intellij.ide.dnd.DnDManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -76,9 +77,22 @@ class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true
         browser.loadURL(WebUiResourceHandler.INDEX_URL)
     }
 
-    /** Delete/Backspace on the canvas remove the selected boxes (or the hovered one); handled here so the IDE does not keep the key. */
+    /** True while a text field in the web app has focus; the delete shortcut then lets the key through to it. */
+    @Volatile
+    private var textFieldFocused = false
+
+    /**
+     * Delete/Backspace on the canvas remove the selected boxes (or the hovered one); handled here so the IDE does not keep the key.
+     * Disabled while a web text field has focus, so the IDE passes the key on to the browser and the field can delete text.
+     */
     private fun registerDeleteShortcut() {
         val delete = object : DumbAwareAction() {
+            override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+            override fun update(e: AnActionEvent) {
+                e.presentation.isEnabled = !textFieldFocused
+            }
+
             override fun actionPerformed(e: AnActionEvent) {
                 controller?.command("deleteSelection")
             }
@@ -167,6 +181,7 @@ class ClassGraphPanel(private val project: Project) : SimpleToolWindowPanel(true
             is Inbound.FindIncoming -> controller?.findIncoming(message.id)
             is Inbound.ExportImage -> ImageExport.save(project, message.format, message.dataUrl)
             is Inbound.OpenSearch -> openSearch(Point(message.x, message.y))
+            is Inbound.TextFocus -> textFieldFocused = message.active
         }
     }
 

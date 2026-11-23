@@ -548,3 +548,22 @@ button {
   opacity: 0.5;
   cursor: default;
 }
+
+.cg-pick-filter {
+  padding: 4px 8px;
+  border: 1px solid var(--cg-border);
+  border-radius: 4px;
+  background: var(--cg-background);
+  color: var(--cg-foreground);
+  font: inherit;
+}
+
+.cg-pick-filter:focus {
+  border-color: var(--cg-accent);
+  outline: none;
+}
+
+.cg-pick-empty {
+  padding: 6px 2px;
+  color: var(--cg-secondary-foreground);
+}
